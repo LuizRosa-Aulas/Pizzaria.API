@@ -1,6 +1,6 @@
 # 🍕 Pizzaria.API
 
-API REST para gerenciamento de uma pizzaria, com CRUD completo de pizzas, usuários e vendas. Desenvolvida em **.NET 9** utilizando **ADO.NET (SQL puro)**, sem uso de ORMs, proporcionando maior controle sobre as queries e melhor entendimento do acesso a dados.
+API REST para gerenciamento de uma pizzaria, com CRUD completo de pizzas, usuários e vendas. Desenvolvida em **.NET 9** utilizando **ADO.NET (SQL puro)**, proporcionando maior controle sobre as queries e melhor entendimento do acesso a dados.
 
 ---
 
