@@ -14,7 +14,6 @@ builder.Services.AddScoped<VendaRepository>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// 🔥 CORS LIBERADO GERAL
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("LiberadoGeral", policy =>
@@ -32,7 +31,6 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// 🔥 AQUI É O PULO DO GATO (antes do MapControllers)
 app.UseCors("LiberadoGeral");
 
 app.UseHttpsRedirection();
