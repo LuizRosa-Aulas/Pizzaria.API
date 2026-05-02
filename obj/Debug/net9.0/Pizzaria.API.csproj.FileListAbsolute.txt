@@ -34,3 +34,4 @@ E:\LUIZ ROSA\Aulas\2026\I60 - CRN - Criacao de Negocios\Pizzaria.API\obj\Debug\n
 E:\LUIZ ROSA\Aulas\2026\I60 - CRN - Criacao de Negocios\Pizzaria.API\obj\Debug\net9.0\Pizzaria.API.pdb
 E:\LUIZ ROSA\Aulas\2026\I60 - CRN - Criacao de Negocios\Pizzaria.API\obj\Debug\net9.0\Pizzaria.API.genruntimeconfig.cache
 E:\LUIZ ROSA\Aulas\2026\I60 - CRN - Criacao de Negocios\Pizzaria.API\obj\Debug\net9.0\ref\Pizzaria.API.dll
+E:\LUIZ ROSA\Aulas\2026\I60 - CRN - Criacao de Negocios\Pizzaria.API\obj\Debug\net9.0\Pizzaria.API.sourcelink.json

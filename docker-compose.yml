@@ -1,0 +1,42 @@
+services:
+  pizzaria-api:
+    build: .
+    container_name: pizzaria-api
+    restart: unless-stopped
+    depends_on:
+      - pizzaria-db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=pizzaria-db;Database=PizzariaDb;User=root;Password=root;
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+
+      # Router
+      - "traefik.http.routers.pizzaria.rule=Host(`pizzaria-api.viniciusguedes.cloud`)"
+      - "traefik.http.routers.pizzaria.entrypoints=websecure"
+      - "traefik.http.routers.pizzaria.tls.certresolver=letsencrypt"
+
+      # Service
+      - "traefik.http.services.pizzaria.loadbalancer.server.port=8080"
+
+  pizzaria-db:
+    image: mysql:8.0
+    container_name: pizzaria-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: PizzariaDb
+    volumes:
+      - ./mysql:/var/lib/mysql
+      - ./Scripts/CriarBanco.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - web
+    ports:
+      - "3312:3306"
+
+networks:
+  web:
+    external: true
