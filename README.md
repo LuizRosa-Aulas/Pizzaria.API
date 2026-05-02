@@ -8,7 +8,7 @@ API REST para gerenciamento de uma pizzaria, com CRUD completo de pizzas, usuár
 
 A API está disponível para testes em:
 
-👉 http://pizzaria-api.viniciusguedes.cloud
+👉 http://pizzaria-api.viniciusguedes.cloud/swagger
 
 Você pode utilizar ferramentas como **Postman**, **Insomnia** ou o próprio navegador via Swagger.
 
