@@ -8,9 +8,19 @@ API REST para gerenciamento de uma pizzaria, com CRUD completo de pizzas, usuár
 
 A API está disponível para testes em:
 
-👉 http://aula-pizzaria-api.viniciusguedes.cloud
+👉 http://pizzaria-api.viniciusguedes.cloud/swagger
 
 Você pode utilizar ferramentas como **Postman**, **Insomnia** ou o próprio navegador via Swagger.
+
+---
+
+## 🔗 Repositórios
+
+- 🔙 Backend (API):  
+👉 https://github.com/LuizRosa-Aulas/Pizzaria.API  
+
+- 🎨 Frontend (UI):  
+👉 https://github.com/LuizRosa-Aulas/Pizzaria.UI
 
 ---
 
@@ -89,7 +99,7 @@ Pizzaria.API/
 ### 1. Clonar o repositório
 
 ```bash
-git clone https://github.com/seu-usuario/pizzaria-api.git
+git clone https://github.com/LuizRosa-Aulas/pizzaria-api.git
 ```
 
 ---
