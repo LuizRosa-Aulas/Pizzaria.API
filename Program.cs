@@ -53,8 +53,6 @@ app.UseSwaggerUI();
 
 app.UseCors("LiberadoGeral");
 
-app.UseHttpsRedirection();
-
 app.MapControllers();
 
 app.Run();
