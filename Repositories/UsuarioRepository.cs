@@ -1,4 +1,4 @@
-using MySqlConnector;
+using Microsoft.Data.Sqlite;
 using Pizzaria.API.Models;
 
 namespace Pizzaria.API.Repositories;
@@ -12,15 +12,24 @@ public class UsuarioRepository
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
+    private SqliteConnection CreateConnection()
+    {
+        var conn = new SqliteConnection(_connectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "PRAGMA foreign_keys=ON;";
+        cmd.ExecuteNonQuery();
+        return conn;
+    }
+
     public async Task<List<Usuario>> GetAllAsync()
     {
         var usuarios = new List<Usuario>();
 
-        using var connection = new MySqlConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = CreateConnection();
 
-        using var command = new MySqlCommand(
-            "SELECT Id, Nome, Email, Telefone FROM Usuarios", connection);
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT Id, Nome, Email, Telefone FROM Usuarios";
 
         using var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -39,11 +48,10 @@ public class UsuarioRepository
 
     public async Task<Usuario?> GetByIdAsync(int id)
     {
-        using var connection = new MySqlConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = CreateConnection();
 
-        using var command = new MySqlCommand(
-            "SELECT Id, Nome, Email, Telefone FROM Usuarios WHERE Id = @Id", connection);
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT Id, Nome, Email, Telefone FROM Usuarios WHERE Id = @Id";
         command.Parameters.AddWithValue("@Id", id);
 
         using var reader = await command.ExecuteReaderAsync();
@@ -63,13 +71,13 @@ public class UsuarioRepository
 
     public async Task<Usuario> CreateAsync(Usuario usuario)
     {
-        using var connection = new MySqlConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = CreateConnection();
 
-        using var command = new MySqlCommand(@"
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
             INSERT INTO Usuarios (Nome, Email, Telefone)
             VALUES (@Nome, @Email, @Telefone);
-            SELECT LAST_INSERT_ID();", connection);
+            SELECT last_insert_rowid();";
 
         command.Parameters.AddWithValue("@Nome", usuario.Nome);
         command.Parameters.AddWithValue("@Email", usuario.Email);
@@ -81,13 +89,13 @@ public class UsuarioRepository
 
     public async Task<bool> UpdateAsync(Usuario usuario)
     {
-        using var connection = new MySqlConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = CreateConnection();
 
-        using var command = new MySqlCommand(@"
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
             UPDATE Usuarios
             SET Nome = @Nome, Email = @Email, Telefone = @Telefone
-            WHERE Id = @Id", connection);
+            WHERE Id = @Id";
 
         command.Parameters.AddWithValue("@Id", usuario.Id);
         command.Parameters.AddWithValue("@Nome", usuario.Nome);
@@ -99,11 +107,10 @@ public class UsuarioRepository
 
     public async Task<bool> DeleteAsync(int id)
     {
-        using var connection = new MySqlConnection(_connectionString);
-        await connection.OpenAsync();
+        using var connection = CreateConnection();
 
-        using var command = new MySqlCommand(
-            "DELETE FROM Usuarios WHERE Id = @Id", connection);
+        using var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM Usuarios WHERE Id = @Id";
         command.Parameters.AddWithValue("@Id", id);
 
         return await command.ExecuteNonQueryAsync() > 0;
