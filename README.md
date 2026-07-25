@@ -177,7 +177,5 @@ Este projeto foi desenvolvido para:
 
 Perito, você seguiu os logs até aqui. 🎯
 
-**1ª metade da chave do arquivo lacrado:** `zQN(H>`
-
-A **2ª metade** está escondida no **front-end** da *Pizzaria.UI* (dica: `Ctrl+U` ou F12).
-Junte as duas metades e rode `decrypt db_2026-01-23.sql.enc` no console forense.
+**Senha 1/2** `zQN(H>`
+File -> decrypt db_2026-01-23.sql.enc`
