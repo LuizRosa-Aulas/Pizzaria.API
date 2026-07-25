@@ -167,3 +167,17 @@ Este projeto foi desenvolvido para:
 
 - Ensinar conceitos de API REST  
 - Servir como base para exercícios de consumo de API (frontend, Postman, etc.)  
+
+---
+
+## 🕵️ Desafio das Estrelas (atividade de aula)
+
+> ⚠️ Esta seção faz parte de um **jogo investigativo educacional** (*Desafio das Estrelas*).
+> O valor abaixo **não é uma credencial real** do sistema — é apenas uma pista do jogo.
+
+Perito, você seguiu os logs até aqui. 🎯
+
+**1ª metade da chave do arquivo lacrado:** `zQN(H>`
+
+A **2ª metade** está escondida no **front-end** da *Pizzaria.UI* (dica: `Ctrl+U` ou F12).
+Junte as duas metades e rode `decrypt db_2026-01-23.sql.enc` no console forense.
