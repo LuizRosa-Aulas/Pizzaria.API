@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+using MySqlConnector;
 using Pizzaria.API.Models;
 
 namespace Pizzaria.API.Repositories;
@@ -12,13 +12,10 @@ public class UsuarioRepository
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
-    private SqliteConnection CreateConnection()
+    private async Task<MySqlConnection> CreateConnectionAsync()
     {
-        var conn = new SqliteConnection(_connectionString);
-        conn.Open();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = "PRAGMA foreign_keys=ON;";
-        cmd.ExecuteNonQuery();
+        var conn = new MySqlConnection(_connectionString);
+        await conn.OpenAsync();
         return conn;
     }
 
@@ -26,7 +23,7 @@ public class UsuarioRepository
     {
         var usuarios = new List<Usuario>();
 
-        using var connection = CreateConnection();
+        using var connection = await CreateConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = "SELECT Id, Nome, Email, Telefone FROM Usuarios";
@@ -48,7 +45,7 @@ public class UsuarioRepository
 
     public async Task<Usuario?> GetByIdAsync(int id)
     {
-        using var connection = CreateConnection();
+        using var connection = await CreateConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = "SELECT Id, Nome, Email, Telefone FROM Usuarios WHERE Id = @Id";
@@ -71,25 +68,26 @@ public class UsuarioRepository
 
     public async Task<Usuario> CreateAsync(Usuario usuario)
     {
-        using var connection = CreateConnection();
+        using var connection = await CreateConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
             INSERT INTO Usuarios (Nome, Email, Telefone)
-            VALUES (@Nome, @Email, @Telefone);
-            SELECT last_insert_rowid();";
+            VALUES (@Nome, @Email, @Telefone)";
 
         command.Parameters.AddWithValue("@Nome", usuario.Nome);
         command.Parameters.AddWithValue("@Email", usuario.Email);
         command.Parameters.AddWithValue("@Telefone", usuario.Telefone);
 
-        usuario.Id = Convert.ToInt32(await command.ExecuteScalarAsync());
+        await command.ExecuteNonQueryAsync();
+
+        usuario.Id = (int)command.LastInsertedId;
         return usuario;
     }
 
     public async Task<bool> UpdateAsync(Usuario usuario)
     {
-        using var connection = CreateConnection();
+        using var connection = await CreateConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -107,7 +105,7 @@ public class UsuarioRepository
 
     public async Task<bool> DeleteAsync(int id)
     {
-        using var connection = CreateConnection();
+        using var connection = await CreateConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = "DELETE FROM Usuarios WHERE Id = @Id";

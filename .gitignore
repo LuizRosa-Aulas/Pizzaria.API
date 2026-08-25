@@ -1,0 +1,12 @@
+# Segredos: a senha do MySQL vive no .env, que NUNCA vai para o repositorio.
+# O deploy tambem exclui o .env do rsync, entao o arquivo do servidor sobrevive.
+.env
+.env.*
+!.env.example
+
+# Build
+bin/
+obj/
+
+# Dump gerado pelo script de migracao do SQLite
+dados-pizzaria-mysql.sql

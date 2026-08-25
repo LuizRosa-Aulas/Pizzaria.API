@@ -32,13 +32,55 @@ jobs:
             --exclude=".github" \
             --exclude="bin" \
             --exclude="obj" \
+            --exclude=".env" \
             ./ \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/apps/Pizzaria.API
+
+      # O .env fica fora do repositório e fora do rsync: é escrito aqui, a partir
+      # dos secrets. O conteúdo vai pelo stdin do ssh, não pela linha de comando.
+      #
+      # ATENÇÃO: MYSQL_PASSWORD e MYSQL_ROOT_PASSWORD só têm efeito na PRIMEIRA
+      # subida do MySQL, quando o volume mysql_data é criado. Trocar o secret
+      # depois não troca a senha do banco -- veja o README para rotacionar.
+      - name: Gerar .env no servidor a partir dos secrets
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          # Opcionais: cadastre como Variables (não secrets) para sobrescrever
+          RESET_HORA: ${{ vars.RESET_HORA || '03:00' }}
+          RESET_TZ: ${{ vars.TZ || 'America/Sao_Paulo' }}
+        run: |
+          faltando=""
+          [ -z "$MYSQL_ROOT_PASSWORD" ] && faltando="$faltando MYSQL_ROOT_PASSWORD"
+          [ -z "$MYSQL_PASSWORD" ]      && faltando="$faltando MYSQL_PASSWORD"
+
+          if [ -n "$faltando" ]; then
+            echo "ERRO: secret(s) não definido(s):$faltando"
+            echo "Cadastre em Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+          ssh -o StrictHostKeyChecking=no "$SSH_USER@$SSH_HOST" \
+            "umask 077 && cat > /opt/apps/Pizzaria.API/.env" <<EOF
+          MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+          MYSQL_DATABASE=pizzaria
+          MYSQL_USER=pizzaria
+          MYSQL_PASSWORD=${MYSQL_PASSWORD}
+          RESET_HORA=${RESET_HORA}
+          RESET_AO_SUBIR=false
+          TZ=${RESET_TZ}
+          EOF
+
+          echo ".env gravado em /opt/apps/Pizzaria.API/.env (permissão 600)"
 
       - name: Subir containers com Docker Compose
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+              set -e
               cd /opt/apps/Pizzaria.API
               docker compose up -d --build
+              docker compose ps
           EOF

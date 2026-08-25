@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "targets": {
     "net9.0": {
       "Microsoft.Extensions.ApiDescription.Server/9.0.0": {
@@ -64,7 +64,7 @@
           }
         }
       },
-      "MySqlConnector/2.5.0": {
+      "MySqlConnector/2.4.0": {
         "type": "package",
         "dependencies": {
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2",
@@ -546,16 +546,14 @@
         "microsoft.openapi.nuspec"
       ]
     },
-    "MySqlConnector/2.5.0": {
-      "sha512": "hoAwfHHF8DlRRqwHOhN3u1KLi+XbX/4LPS7Anfa+SYC97vRyIfdEOEEfj1L50q01Ik8aDNvmDrNmu/VPFiAiaQ==",
+    "MySqlConnector/2.4.0": {
+      "sha512": "78M+gVOjbdZEDIyXQqcA7EYlCGS3tpbUELHvn6638A2w0pkPI625ixnzsa5staAd3N9/xFmPJtkKDYwsXpFi/w==",
       "type": "package",
-      "path": "mysqlconnector/2.5.0",
+      "path": "mysqlconnector/2.4.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "README.md",
-        "lib/net10.0/MySqlConnector.dll",
-        "lib/net10.0/MySqlConnector.xml",
         "lib/net462/MySqlConnector.dll",
         "lib/net462/MySqlConnector.xml",
         "lib/net471/MySqlConnector.dll",
@@ -573,7 +571,7 @@
         "lib/netstandard2.1/MySqlConnector.dll",
         "lib/netstandard2.1/MySqlConnector.xml",
         "logo.png",
-        "mysqlconnector.2.5.0.nupkg.sha512",
+        "mysqlconnector.2.4.0.nupkg.sha512",
         "mysqlconnector.nuspec"
       ]
     },
@@ -730,7 +728,7 @@
   },
   "projectFileDependencyGroups": {
     "net9.0": [
-      "MySqlConnector >= 2.5.0",
+      "MySqlConnector >= 2.4.*",
       "Swashbuckle.AspNetCore >= 10.1.7"
     ]
   },
@@ -741,11 +739,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\LUIZ ROSA\\Aulas\\2026\\I60 - CRN - Criacao de Negocios\\Pizzaria.API\\Pizzaria.API.csproj",
+      "projectUniqueName": "D:\\SERVIDOR\\opt\\apps\\Pizzaria.API\\Pizzaria.API.csproj",
       "projectName": "Pizzaria.API",
-      "projectPath": "E:\\LUIZ ROSA\\Aulas\\2026\\I60 - CRN - Criacao de Negocios\\Pizzaria.API\\Pizzaria.API.csproj",
+      "projectPath": "D:\\SERVIDOR\\opt\\apps\\Pizzaria.API\\Pizzaria.API.csproj",
       "packagesPath": "C:\\Users\\vinic\\.nuget\\packages\\",
-      "outputPath": "E:\\LUIZ ROSA\\Aulas\\2026\\I60 - CRN - Criacao de Negocios\\Pizzaria.API\\obj\\",
+      "outputPath": "D:\\SERVIDOR\\opt\\apps\\Pizzaria.API\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -764,6 +762,7 @@
       },
       "frameworks": {
         "net9.0": {
+          "framework": "net9.0",
           "targetAlias": "net9.0",
           "projectReferences": {}
         }
@@ -778,15 +777,16 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "10.0.200"
+      "SdkAnalysisLevel": "10.0.400"
     },
     "frameworks": {
       "net9.0": {
+        "framework": "net9.0",
         "targetAlias": "net9.0",
         "dependencies": {
           "MySqlConnector": {
             "target": "Package",
-            "version": "[2.5.0, )"
+            "version": "[2.4.*, )"
           },
           "Swashbuckle.AspNetCore": {
             "target": "Package",
@@ -804,6 +804,24 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[9.0.19, 9.0.19]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.win-x64",
+            "version": "[9.0.19, 9.0.19]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[9.0.19, 9.0.19]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Ref",
+            "version": "[9.0.19, 9.0.19]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
@@ -812,7 +830,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.202/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.400/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

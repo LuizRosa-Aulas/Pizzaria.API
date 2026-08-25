@@ -1,17 +1,48 @@
 services:
+  pizzaria-mysql:
+    image: mysql:8.4
+    container_name: pizzaria-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:?defina MYSQL_ROOT_PASSWORD no arquivo .env}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-pizzaria}
+      - MYSQL_USER=${MYSQL_USER:-pizzaria}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:?defina MYSQL_PASSWORD no arquivo .env}
+      - TZ=${TZ:-America/Sao_Paulo}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    # ATENCAO: a 3306 esta publicada para a internet, a pedido. A imagem mysql
+    # cria root@'%', ou seja o root tambem responde de fora -- as senhas do .env
+    # sao a unica barreira. Para fechar, volte para "127.0.0.1:3306:3306".
+    ports:
+      - "3306:3306"
+    networks:
+      - pizzaria-internal
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
   pizzaria-api:
     build: .
     container_name: pizzaria-api
     restart: unless-stopped
+    depends_on:
+      pizzaria-mysql:
+        condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Data Source=/data/pizzaria.db
+      - ConnectionStrings__DefaultConnection=Server=pizzaria-mysql;Port=3306;Database=${MYSQL_DATABASE:-pizzaria};User Id=${MYSQL_USER:-pizzaria};Password=${MYSQL_PASSWORD};Default Command Timeout=30;
+      - TZ=${TZ:-America/Sao_Paulo}
     volumes:
-      - sqlite_data:/data
+      # Permite ajustar o schema sem rebuildar a imagem
       - ./Scripts/CriarBanco.sql:/app/init.sql:ro
     networks:
       - web
+      - pizzaria-internal
     labels:
       - "traefik.enable=true"
 
@@ -23,9 +54,35 @@ services:
       # Service
       - "traefik.http.services.pizzaria.loadbalancer.server.port=8080"
 
+  # Reseta os dados de demonstracao todo dia no horario de RESET_HORA.
+  # Reaproveita a imagem do mysql so pelo cliente de linha de comando.
+  pizzaria-seed:
+    image: mysql:8.4
+    container_name: pizzaria-seed
+    restart: unless-stopped
+    depends_on:
+      pizzaria-mysql:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "/scripts/AgendadorReset.sh"]
+    environment:
+      - MYSQL_HOST=pizzaria-mysql
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-pizzaria}
+      - MYSQL_USER=${MYSQL_USER:-pizzaria}
+      # MYSQL_PWD e lido pelo cliente mysql: a senha nao vai na linha de comando
+      - MYSQL_PWD=${MYSQL_PASSWORD}
+      - RESET_HORA=${RESET_HORA:-03:00}
+      - RESET_AO_SUBIR=${RESET_AO_SUBIR:-false}
+      - TZ=${TZ:-America/Sao_Paulo}
+    volumes:
+      - ./Scripts:/scripts:ro
+    networks:
+      - pizzaria-internal
+
 networks:
   web:
     external: true
+  pizzaria-internal:
+    driver: bridge
 
 volumes:
-  sqlite_data:
+  mysql_data:

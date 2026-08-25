@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+using MySqlConnector;
 using Pizzaria.API.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,24 +26,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Inicializar banco SQLite na primeira execução
+// Inicializar banco MySQL na primeira execução
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
-using (var initConn = new SqliteConnection(connectionString))
-{
-    initConn.Open();
-    using var pragma1 = initConn.CreateCommand();
-    pragma1.CommandText = "PRAGMA journal_mode=WAL;";
-    pragma1.ExecuteNonQuery();
-
-    using var pragma2 = initConn.CreateCommand();
-    pragma2.CommandText = "PRAGMA foreign_keys=ON;";
-    pragma2.ExecuteNonQuery();
-
-    var initSql = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "init.sql"));
-    using var cmd = initConn.CreateCommand();
-    cmd.CommandText = initSql;
-    cmd.ExecuteNonQuery();
-}
+await InicializarBancoAsync(connectionString);
 
 var app = builder.Build();
 
@@ -56,3 +41,39 @@ app.UseCors("LiberadoGeral");
 app.MapControllers();
 
 app.Run();
+
+// Cria as tabelas e os dados de exemplo. O container do MySQL leva alguns segundos
+// para aceitar conexões, então tentamos algumas vezes antes de desistir.
+static async Task InicializarBancoAsync(string connectionString)
+{
+    var scriptPath = new[]
+    {
+        Path.Combine(AppContext.BaseDirectory, "init.sql"),
+        Path.Combine(AppContext.BaseDirectory, "Scripts", "CriarBanco.sql")
+    }.FirstOrDefault(File.Exists)
+        ?? throw new FileNotFoundException("Script de criação do banco não encontrado (init.sql ou Scripts/CriarBanco.sql).");
+
+    var script = await File.ReadAllTextAsync(scriptPath);
+
+    const int maxTentativas = 15;
+    for (var tentativa = 1; ; tentativa++)
+    {
+        try
+        {
+            await using var connection = new MySqlConnection(connectionString);
+            await connection.OpenAsync();
+
+            await using var command = connection.CreateCommand();
+            command.CommandText = script;
+            await command.ExecuteNonQueryAsync();
+
+            Console.WriteLine("Banco inicializado com sucesso.");
+            return;
+        }
+        catch (MySqlException ex) when (tentativa < maxTentativas)
+        {
+            Console.WriteLine($"MySQL indisponível (tentativa {tentativa}/{maxTentativas}): {ex.Message}");
+            await Task.Delay(TimeSpan.FromSeconds(4));
+        }
+    }
+}

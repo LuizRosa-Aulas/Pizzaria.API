@@ -7,8 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.*" />
+    <PackageReference Include="MySqlConnector" Version="2.4.*" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Copiado para a saida para o "dotnet run" conseguir criar o schema sozinho -->
+    <None Include="Scripts/CriarBanco.sql" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

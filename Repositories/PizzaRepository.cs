@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+using MySqlConnector;
 using Pizzaria.API.Models;
 
 namespace Pizzaria.API.Repositories;
@@ -12,13 +12,10 @@ public class PizzaRepository
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
-    private SqliteConnection CreateConnection()
+    private async Task<MySqlConnection> CreateConnectionAsync()
     {
-        var conn = new SqliteConnection(_connectionString);
-        conn.Open();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = "PRAGMA foreign_keys=ON;";
-        cmd.ExecuteNonQuery();
+        var conn = new MySqlConnection(_connectionString);
+        await conn.OpenAsync();
         return conn;
     }
 
@@ -26,7 +23,7 @@ public class PizzaRepository
     {
         var pizzas = new List<Pizza>();
 
-        using var connection = CreateConnection();
+        using var connection = await CreateConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = "SELECT Id, Nome, Descricao, Preco FROM Pizzas";
@@ -48,7 +45,7 @@ public class PizzaRepository
 
     public async Task<Pizza?> GetByIdAsync(int id)
     {
-        using var connection = CreateConnection();
+        using var connection = await CreateConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = "SELECT Id, Nome, Descricao, Preco FROM Pizzas WHERE Id = @Id";
@@ -71,25 +68,26 @@ public class PizzaRepository
 
     public async Task<Pizza> CreateAsync(Pizza pizza)
     {
-        using var connection = CreateConnection();
+        using var connection = await CreateConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
             INSERT INTO Pizzas (Nome, Descricao, Preco)
-            VALUES (@Nome, @Descricao, @Preco);
-            SELECT last_insert_rowid();";
+            VALUES (@Nome, @Descricao, @Preco)";
 
         command.Parameters.AddWithValue("@Nome", pizza.Nome);
         command.Parameters.AddWithValue("@Descricao", pizza.Descricao);
         command.Parameters.AddWithValue("@Preco", pizza.Preco);
 
-        pizza.Id = Convert.ToInt32(await command.ExecuteScalarAsync());
+        await command.ExecuteNonQueryAsync();
+
+        pizza.Id = (int)command.LastInsertedId;
         return pizza;
     }
 
     public async Task<bool> UpdateAsync(Pizza pizza)
     {
-        using var connection = CreateConnection();
+        using var connection = await CreateConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -107,7 +105,7 @@ public class PizzaRepository
 
     public async Task<bool> DeleteAsync(int id)
     {
-        using var connection = CreateConnection();
+        using var connection = await CreateConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = "DELETE FROM Pizzas WHERE Id = @Id";

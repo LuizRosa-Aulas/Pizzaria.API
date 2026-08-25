@@ -1,0 +1,5 @@
+# Scripts rodam em container Linux: precisam de LF, nunca CRLF.
+*.sh text eol=lf
+*.sql text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf

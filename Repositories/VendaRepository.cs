@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+using MySqlConnector;
 using Pizzaria.API.Models;
 
 namespace Pizzaria.API.Repositories;
@@ -12,13 +12,10 @@ public class VendaRepository
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
-    private SqliteConnection CreateConnection()
+    private async Task<MySqlConnection> CreateConnectionAsync()
     {
-        var conn = new SqliteConnection(_connectionString);
-        conn.Open();
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = "PRAGMA foreign_keys=ON;";
-        cmd.ExecuteNonQuery();
+        var conn = new MySqlConnection(_connectionString);
+        await conn.OpenAsync();
         return conn;
     }
 
@@ -26,7 +23,7 @@ public class VendaRepository
     {
         var vendas = new List<Venda>();
 
-        using var connection = CreateConnection();
+        using var connection = await CreateConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -58,7 +55,7 @@ public class VendaRepository
 
     public async Task<Venda?> GetByIdAsync(int id)
     {
-        using var connection = CreateConnection();
+        using var connection = await CreateConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -91,28 +88,31 @@ public class VendaRepository
 
     public async Task<Venda> CreateAsync(Venda venda)
     {
-        using var connection = CreateConnection();
+        using var connection = await CreateConnectionAsync();
+
+        var dataVenda = DateTime.Now;
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
             INSERT INTO Vendas (UsuarioId, PizzaId, Quantidade, ValorTotal, DataVenda)
-            VALUES (@UsuarioId, @PizzaId, @Quantidade, @ValorTotal, @DataVenda);
-            SELECT last_insert_rowid();";
+            VALUES (@UsuarioId, @PizzaId, @Quantidade, @ValorTotal, @DataVenda)";
 
         command.Parameters.AddWithValue("@UsuarioId", venda.UsuarioId);
         command.Parameters.AddWithValue("@PizzaId", venda.PizzaId);
         command.Parameters.AddWithValue("@Quantidade", venda.Quantidade);
         command.Parameters.AddWithValue("@ValorTotal", venda.ValorTotal);
-        command.Parameters.AddWithValue("@DataVenda", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+        command.Parameters.AddWithValue("@DataVenda", dataVenda);
 
-        venda.Id = Convert.ToInt32(await command.ExecuteScalarAsync());
-        venda.DataVenda = DateTime.Now;
+        await command.ExecuteNonQueryAsync();
+
+        venda.Id = (int)command.LastInsertedId;
+        venda.DataVenda = dataVenda;
         return venda;
     }
 
     public async Task<bool> UpdateAsync(Venda venda)
     {
-        using var connection = CreateConnection();
+        using var connection = await CreateConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
@@ -131,7 +131,7 @@ public class VendaRepository
 
     public async Task<bool> DeleteAsync(int id)
     {
-        using var connection = CreateConnection();
+        using var connection = await CreateConnectionAsync();
 
         using var command = connection.CreateCommand();
         command.CommandText = "DELETE FROM Vendas WHERE Id = @Id";
