@@ -1,0 +1,89 @@
+name: Deploy Pizzaria API
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          if [ -z "${{ secrets.SSH_HOST }}" ]; then
+            echo "SSH_HOST está vazio"
+            exit 1
+          fi
+
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Sincronizar arquivos com o servidor
+        run: |
+          rsync -avz --delete \
+            --exclude=".git" \
+            --exclude=".github" \
+            --exclude="bin" \
+            --exclude="obj" \
+            --exclude=".env" \
+            ./ \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/apps/Pizzaria.API
+
+      # O .env fica fora do repositório e fora do rsync: é escrito aqui, a partir
+      # dos secrets. O conteúdo vai pelo stdin do ssh, não pela linha de comando.
+      #
+      # ATENÇÃO: MYSQL_PASSWORD e MYSQL_ROOT_PASSWORD só têm efeito na PRIMEIRA
+      # subida do MySQL, quando o volume mysql_data é criado. Trocar o secret
+      # depois não troca a senha do banco -- veja o README para rotacionar.
+      - name: Gerar .env no servidor a partir dos secrets
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          # Opcionais: cadastre como Variables (não secrets) para sobrescrever
+          RESET_HORA: ${{ vars.RESET_HORA || '03:00' }}
+          RESET_TZ: ${{ vars.TZ || 'America/Sao_Paulo' }}
+        run: |
+          faltando=""
+          [ -z "$MYSQL_ROOT_PASSWORD" ] && faltando="$faltando MYSQL_ROOT_PASSWORD"
+          [ -z "$MYSQL_PASSWORD" ]      && faltando="$faltando MYSQL_PASSWORD"
+
+          if [ -n "$faltando" ]; then
+            echo "ERRO: secret(s) não definido(s):$faltando"
+            echo "Cadastre em Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+          ssh -o StrictHostKeyChecking=no "$SSH_USER@$SSH_HOST" \
+            "umask 077 && cat > /opt/apps/Pizzaria.API/.env" <<EOF
+          MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+          MYSQL_DATABASE=pizzaria
+          MYSQL_USER=pizzaria
+          MYSQL_PASSWORD=${MYSQL_PASSWORD}
+          RESET_HORA=${RESET_HORA}
+          RESET_AO_SUBIR=false
+          TZ=${RESET_TZ}
+          EOF
+
+          echo ".env gravado em /opt/apps/Pizzaria.API/.env (permissão 600)"
+
+      # O -f e obrigatorio: o docker-compose.yml da raiz e o ambiente LOCAL
+      # (roda direto apos o git clone). O do servidor -- Traefik, rede web e
+      # senhas do .env -- e o docker-compose.prod.yml.
+      - name: Subir containers com Docker Compose
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+              set -e
+              cd /opt/apps/Pizzaria.API
+              docker compose -f docker-compose.prod.yml up -d --build
+              docker compose -f docker-compose.prod.yml ps
+          EOF

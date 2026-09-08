@@ -1,0 +1,62 @@
+# =============================================================================
+# Ambiente LOCAL -- roda direto depois do git clone, sem configurar nada:
+#
+#     docker compose up -d --build
+#     http://localhost:8080/swagger
+#
+# As senhas abaixo sao de desenvolvimento e estao versionadas de proposito: o
+# banco so escuta em 127.0.0.1 e as mesmas credenciais estao no appsettings.json,
+# entao "dotnet run" tambem conecta neste banco sem editar nada.
+#
+# O ambiente do servidor e outro arquivo -- docker-compose.prod.yml -- com
+# Traefik, rede externa "web" e senhas vindas do .env.
+# =============================================================================
+services:
+  pizzaria-mysql:
+    image: mysql:8.4
+    # Nome com sufixo -dev: se este arquivo for rodado por engano no servidor,
+    # ele nao substitui os containers de producao.
+    container_name: pizzaria-mysql-dev
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_dev
+      - MYSQL_DATABASE=pizzaria
+      - MYSQL_USER=pizzaria
+      - MYSQL_PASSWORD=pizzaria_dev
+      - TZ=America/Sao_Paulo
+    ports:
+      # 3307 e nao 3306 de proposito: quem ja tem MySQL ou XAMPP instalado tem a
+      # 3306 ocupada, e o "docker compose up" morreria no bind. Publicado so no
+      # localhost. Para trocar:  MYSQL_PORT=3316 docker compose up -d
+      # (mexendo aqui, ajuste tambem a porta do appsettings.json para o dotnet run)
+      - "127.0.0.1:${MYSQL_PORT:-3307}:3306"
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-proot_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  pizzaria-api:
+    build: .
+    container_name: pizzaria-api-dev
+    depends_on:
+      pizzaria-mysql:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=pizzaria-mysql;Port=3306;Database=pizzaria;User Id=pizzaria;Password=pizzaria_dev;Default Command Timeout=30;
+      - TZ=America/Sao_Paulo
+    ports:
+      # Se a 8080 estiver ocupada:  API_PORT=8081 docker compose up -d
+      - "${API_PORT:-8080}:8080"
+    volumes:
+      # Permite mexer no schema e so reiniciar o container, sem rebuildar a imagem
+      - ./Scripts/CriarBanco.sql:/app/init.sql:ro
+
+# Sem "restart: unless-stopped" de proposito: numa maquina de aula os containers
+# nao devem voltar sozinhos a cada boot. No servidor eles voltam (arquivo prod).
+volumes:
+  mysql_dev_data:
