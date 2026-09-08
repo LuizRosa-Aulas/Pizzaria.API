@@ -8,7 +8,9 @@ WORKDIR /src
 COPY ["Pizzaria.API.csproj", "."]
 RUN dotnet restore
 COPY . .
-RUN dotnet publish -c Release -o /app/publish
+# O .csproj e explicito de proposito: a raiz tem o Pizzaria.API.sln, e sem o
+# nome do projeto o SDK publicaria a SOLUCAO (warning NETSDK1194 com -o).
+RUN dotnet publish Pizzaria.API.csproj -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app

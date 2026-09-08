@@ -60,6 +60,9 @@ O projeto segue uma **arquitetura em 3 camadas**, simples e didática:
 ```bash
 Pizzaria.API/
 │
+├── Pizzaria.API.sln     # Solução — é este arquivo que se abre no Visual Studio
+├── Pizzaria.API.csproj  # O projeto em si (fica na raiz, ao lado da solução)
+│
 ├── Controllers/         # Endpoints REST
 │   ├── PizzasController.cs
 │   ├── UsuariosController.cs
@@ -176,6 +179,10 @@ Sobe só o banco no Docker e deixa a API na sua máquina, com breakpoint e tudo:
 docker compose up -d pizzaria-mysql
 dotnet run
 ```
+
+No Visual Studio, abra o **`Pizzaria.API.sln`** da raiz (duplo clique nele, não
+em *Abrir uma pasta local*) e rode com F5 — assim o Solution Explorer mostra o
+projeto, os pacotes NuGet e o depurador funciona normalmente.
 
 Swagger em http://localhost:5051/swagger. As credenciais do `appsettings.json`
 são as mesmas do compose local, então **não há nada para ajustar**:
