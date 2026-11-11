@@ -59,7 +59,8 @@ public class PizzaRepository
                 Id = reader.GetInt32(0),
                 Nome = reader.GetString(1),
                 Descricao = reader.GetString(2),
-                Preco = reader.GetDecimal(3)
+                Preco = reader.GetDecimal(3),
+                Custo = reader.GetDecimal(4)
             };
         }
 
@@ -72,12 +73,13 @@ public class PizzaRepository
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
-            INSERT INTO Pizzas (Nome, Descricao, Preco)
-            VALUES (@Nome, @Descricao, @Preco)";
+            INSERT INTO Pizzas (Nome, Descricao, Preco, Custo)
+            VALUES (@Nome, @Descricao, @Preco, @Custo)";
 
         command.Parameters.AddWithValue("@Nome", pizza.Nome);
         command.Parameters.AddWithValue("@Descricao", pizza.Descricao);
         command.Parameters.AddWithValue("@Preco", pizza.Preco);
+        command.Parameters.AddWithValue("@Custo", pizza.Custo);
 
         await command.ExecuteNonQueryAsync();
 
@@ -92,13 +94,14 @@ public class PizzaRepository
         using var command = connection.CreateCommand();
         command.CommandText = @"
             UPDATE Pizzas
-            SET Nome = @Nome, Descricao = @Descricao, Preco = @Preco
+            SET Nome = @Nome, Descricao = @Descricao, Preco = @Preco, Custo = @Custo
             WHERE Id = @Id";
 
         command.Parameters.AddWithValue("@Id", pizza.Id);
         command.Parameters.AddWithValue("@Nome", pizza.Nome);
         command.Parameters.AddWithValue("@Descricao", pizza.Descricao);
         command.Parameters.AddWithValue("@Preco", pizza.Preco);
+        command.Parameters.AddWithValue("@Custo", pizza.Custo);
 
         return await command.ExecuteNonQueryAsync() > 0;
     }
