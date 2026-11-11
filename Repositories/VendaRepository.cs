@@ -28,10 +28,12 @@ public class VendaRepository
         using var command = connection.CreateCommand();
         command.CommandText = @"
             SELECT v.Id, v.UsuarioId, v.PizzaId, v.Quantidade, v.ValorTotal, v.DataVenda,
-                   u.Nome AS NomeUsuario, p.Nome AS NomePizza
+                   u.Nome AS NomeUsuario, p.Nome AS NomePizza,
+                   v.StatusId, s.Nome AS NomeStatus
             FROM Vendas v
             INNER JOIN Usuarios u ON u.Id = v.UsuarioId
             INNER JOIN Pizzas p ON p.Id = v.PizzaId
+            INNER JOIN Status s ON s.StatusId = v.StatusId
             ORDER BY v.DataVenda DESC";
 
         using var reader = await command.ExecuteReaderAsync();
@@ -46,7 +48,9 @@ public class VendaRepository
                 ValorTotal = reader.GetDecimal(4),
                 DataVenda = reader.GetDateTime(5),
                 NomeUsuario = reader.GetString(6),
-                NomePizza = reader.GetString(7)
+                NomePizza = reader.GetString(7),
+                StatusId = Convert.ToString(reader.GetValue(8)),
+                NomeStatus = reader.GetString(9)
             });
         }
 
@@ -136,6 +140,21 @@ public class VendaRepository
         using var command = connection.CreateCommand();
         command.CommandText = "DELETE FROM Vendas WHERE Id = @Id";
         command.Parameters.AddWithValue("@Id", id);
+
+        return await command.ExecuteNonQueryAsync() > 0;
+    }
+    public async Task<bool> UpdateStatusAsync(int id, int StatusId)
+    {
+        using var connection = await CreateConnectionAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            UPDATE Vendas
+            SET StatusId = @StatusId
+            WHERE Id = @Id";
+
+        command.Parameters.AddWithValue("@Id", id);
+        command.Parameters.AddWithValue("@StatusId", StatusId);
 
         return await command.ExecuteNonQueryAsync() > 0;
     }
