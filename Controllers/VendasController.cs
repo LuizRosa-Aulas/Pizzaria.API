@@ -50,4 +50,11 @@ public class VendasController : ControllerBase
         if (!await _repository.DeleteAsync(id)) return NotFound();
         return NoContent();
     }
+
+    [HttpPut("{id}/{StatusId}")]
+    public async Task<ActionResult> UpdateStatus(int id, int StatusId)
+    {
+        if (!await _repository.UpdateStatusAsync(id, StatusId)) return NotFound();
+        return NoContent();
+    }
 }
