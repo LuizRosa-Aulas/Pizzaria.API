@@ -107,6 +107,14 @@ public class VendaRepository
 
         venda.Id = (int)command.LastInsertedId;
         venda.DataVenda = dataVenda;
+
+        command.CommandText = @"
+        UPDATE Pizzas
+        SET Qtd = Qtd - @Quantidade
+        WHERE Id = @PizzaId";
+
+        await command.ExecuteNonQueryAsync();
+
         return venda;
     }
 
