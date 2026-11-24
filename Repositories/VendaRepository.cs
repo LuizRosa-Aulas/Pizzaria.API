@@ -26,7 +26,19 @@ public class VendaRepository
 
         using var connection = await CreateConnectionAsync();
 
-        using (var command = connection.CreateCommand())
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT v.Id, v.UsuarioId, v.PizzaId, v.Quantidade, v.ValorTotal, v.DataVenda,
+                   u.Nome AS NomeUsuario, p.Nome AS NomePizza,
+                   v.StatusId, s.Nome AS NomeStatus
+            FROM Vendas v
+            INNER JOIN Usuarios u ON u.Id = v.UsuarioId
+            INNER JOIN Pizzas p ON p.Id = v.PizzaId
+            INNER JOIN Status s ON s.StatusId = v.StatusId
+            ORDER BY v.DataVenda DESC";
+
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
         {
             command.CommandText = @"
                 SELECT v.Id, v.UsuarioId, v.PizzaId, v.Quantidade, v.ValorTotal, v.DataVenda,
@@ -289,5 +301,20 @@ public class VendaRepository
             await transaction.RollbackAsync();
             throw;
         }
+    }
+    public async Task<bool> UpdateStatusAsync(int id, int StatusId)
+    {
+        using var connection = await CreateConnectionAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = @"
+            UPDATE Vendas
+            SET StatusId = @StatusId
+            WHERE Id = @Id";
+
+        command.Parameters.AddWithValue("@Id", id);
+        command.Parameters.AddWithValue("@StatusId", StatusId);
+
+        return await command.ExecuteNonQueryAsync() > 0;
     }
 }
