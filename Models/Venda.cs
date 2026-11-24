@@ -10,6 +10,8 @@ public class Venda
     public DateTime DataVenda { get; set; }
     public string? StatusId { get; set; }
 
+    public List<VendaAcompanhamento> Acompanhamentos { get; set; } = new();
+
     // Dados preenchidos nas consultas (JOIN)
     public string? NomeUsuario { get; set; }
     public string? NomePizza { get; set; }
