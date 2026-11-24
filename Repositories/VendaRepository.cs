@@ -38,33 +38,22 @@ public class VendaRepository
             ORDER BY v.DataVenda DESC";
 
         using var reader = await command.ExecuteReaderAsync();
+
         while (await reader.ReadAsync())
         {
-            command.CommandText = @"
-                SELECT v.Id, v.UsuarioId, v.PizzaId, v.Quantidade, v.ValorTotal, v.DataVenda,
-                       u.Nome AS NomeUsuario, p.Nome AS NomePizza
-                FROM Vendas v
-                INNER JOIN Usuarios u ON u.Id = v.UsuarioId
-                INNER JOIN Pizzas p ON p.Id = v.PizzaId
-                ORDER BY v.DataVenda DESC";
-
-            using var reader = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
+            vendas.Add(new Venda
             {
-                vendas.Add(new Venda
-                {
-                    Id = reader.GetInt32(0),
-                    UsuarioId = reader.GetInt32(1),
-                    PizzaId = reader.GetInt32(2),
-                    Quantidade = reader.GetInt32(3),
-                    ValorTotal = reader.GetDecimal(4),
-                    DataVenda = reader.GetDateTime(5),
-                    NomeUsuario = reader.GetString(6),
-                    NomePizza = reader.GetString(7)
-                });
-            }
+                Id = reader.GetInt32(0),
+                UsuarioId = reader.GetInt32(1),
+                PizzaId = reader.GetInt32(2),
+                Quantidade = reader.GetInt32(3),
+                ValorTotal = reader.GetDecimal(4),
+                DataVenda = reader.GetDateTime(5),
+                NomeUsuario = reader.GetString(6),
+                NomePizza = reader.GetString(7)
+            });
         }
+
 
         foreach (var venda in vendas)
         {
