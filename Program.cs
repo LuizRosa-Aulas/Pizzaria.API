@@ -21,10 +21,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("LiberadoGeral", policy =>
     {
         policy
-            .WithOrigins(
-                "http://127.0.0.1:5500",
-                "http://localhost:5500"
-            )
+            .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader();
     });
