@@ -50,4 +50,15 @@ public class PizzasController : ControllerBase
         if (!await _repository.DeleteAsync(id)) return NotFound();
         return NoContent();
     }
+
+    [HttpGet("tipo")]
+    public async Task<ActionResult<List<Tipo>>> GetAllTipo()
+    {
+        return Ok(await _repository.GetAllTipoAsync());
+    }
+    [HttpGet("borda")]
+    public async Task<ActionResult<List<Borda>>> GetAllBorda()
+    {
+        return Ok(await _repository.GetAllBordaAsync());
+    }
 }
