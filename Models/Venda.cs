@@ -8,6 +8,9 @@ public class Venda
     public int Quantidade { get; set; }
     public decimal ValorTotal { get; set; }
     public DateTime DataVenda { get; set; }
+    public string? StatusId { get; set; }
+
+    public List<VendaAcompanhamento> Acompanhamentos { get; set; } = new();
 
     // Dados preenchidos nas consultas (JOIN)
     public string? NomeUsuario { get; set; }
@@ -16,4 +19,5 @@ public class Venda
     public int? IdTipo { get; set; }
     public string? NomeBorda { get; set; }
     public string? NomeTipo { get; set; }
+    public string? NomeStatus { get; set; }
 }
