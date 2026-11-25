@@ -21,13 +21,6 @@ public class LucrosController : ControllerBase
         return Ok(await _repository.GetAllAsync());
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Lucros>> GetById(int id)
-    {
-        var lucros = await _repository.GetByIdAsync(id);
-        if (lucros == null) return NotFound();
-        return Ok(lucros);
-    }
 }
 
 

@@ -6,4 +6,5 @@ public class Lucros
     public decimal CustoTotal { get; set; }
     public decimal VendasValorTotal { get; set; }
     public decimal Lucro { get; set; }
+    public DateTime DataVenda { get; set; }
 }

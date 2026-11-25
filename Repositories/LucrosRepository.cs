@@ -28,11 +28,8 @@ public class LucrosRepository
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
-            SELECT l.VendaId, l.CustoTotal, l.VendasValorTotal, l.Lucro
-            FROM Lucros l
-            INNER JOIN Vendas v ON v.Id = l.VendaId
-            INNER JOIN Vendas v ON v.ValorTotal = l.VendasValorTotal
-            ORDER BY v.Id DESC";
+            SELECT Id, ValorTotal, CustoTotal, DataVenda
+            FROM Vendas";
 
         using var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -40,42 +37,13 @@ public class LucrosRepository
             lucros.Add(new Lucros
             {
                 VendaId = reader.GetInt32(0),
-                CustoTotal = reader.GetDecimal(1),
-                VendasValorTotal = reader.GetDecimal(2),
-                Lucro = reader.GetDecimal(3),
-
+                VendasValorTotal = reader.GetDecimal(1),
+                CustoTotal = reader.IsDBNull(2) ? 0m : reader.GetDecimal(2),
+                DataVenda = reader.GetDateTime(3),
+                Lucro = reader.GetDecimal(1) - (reader.IsDBNull(2) ? 0m : reader.GetDecimal(2))
             });
         }
 
         return lucros;
-    }
-
-    public async Task<Lucros?> GetByIdAsync(int id)
-    {
-        using var connection = await CreateConnectionAsync();
-
-        using var command = connection.CreateCommand();
-        command.CommandText = @"
-            SELECT l.VendaId, l.CustoTotal, l.VendasValorTotal, l.Lucro
-            FROM Lucros l
-            INNER JOIN Vendas v ON v.Id = l.VendaId
-            INNER JOIN Vendas v ON v.ValorTotal = l.VendasValorTotal
-            ORDER BY v.Id DESC";
-
-        command.Parameters.AddWithValue("@Id", id);
-
-        using var reader = await command.ExecuteReaderAsync();
-        if (await reader.ReadAsync())
-        {
-            return new Lucros
-            {
-                VendaId = reader.GetInt32(0),
-                CustoTotal = reader.GetDecimal(1),
-                VendasValorTotal = reader.GetDecimal(2),
-                Lucro = reader.GetDecimal(3),
-            };
-        }
-
-        return null;
     }
 }

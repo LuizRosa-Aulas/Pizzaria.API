@@ -94,7 +94,7 @@ public class VendaRepository
 
         using var command = connection.CreateCommand();
         command.CommandText = @"
-            INSERT INTO Vendas (UsuarioId, PizzaId, Quantidade, ValorTotal, DataVenda)
+            INSERT INTO Vendas (UsuarioId, PizzaId, Quantidade, ValorTotal, DataVenda, CustoTotal)
             VALUES (@UsuarioId, @PizzaId, @Quantidade, @ValorTotal, @DataVenda)";
 
         command.Parameters.AddWithValue("@UsuarioId", venda.UsuarioId);
