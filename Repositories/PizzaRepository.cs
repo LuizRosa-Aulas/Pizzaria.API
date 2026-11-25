@@ -37,8 +37,8 @@ public class PizzaRepository
                 Nome = reader.GetString(1),
                 Descricao = reader.GetString(2),
                 Preco = reader.GetDecimal(3),
-                Obs = reader.GetString(4),
-                Qtd = reader.GetInt32(5)
+                Obs = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                Qtd = reader.IsDBNull(5) ? 0 : reader.GetInt32(5)
             });
         }
 
@@ -61,7 +61,9 @@ public class PizzaRepository
                 Id = reader.GetInt32(0),
                 Nome = reader.GetString(1),
                 Descricao = reader.GetString(2),
-                Preco = reader.GetDecimal(3)
+                Preco = reader.GetDecimal(3),
+                Obs = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                Qtd = reader.IsDBNull(5) ? 0 : reader.GetInt32(5)
             };
         }
 
@@ -96,7 +98,7 @@ public class PizzaRepository
         using var command = connection.CreateCommand();
         command.CommandText = @"
             UPDATE Pizzas
-            SET Nome = @Nome, Descricao = @Descricao, Preco = @Preco, Obs = @Obs
+            SET Nome = @Nome, Descricao = @Descricao, Preco = @Preco, Obs = @Obs, Qtd = @Qtd
             WHERE Id = @Id";
 
         command.Parameters.AddWithValue("@Id", pizza.Id);
