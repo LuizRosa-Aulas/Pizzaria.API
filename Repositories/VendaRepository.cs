@@ -95,13 +95,14 @@ public class VendaRepository
         using var command = connection.CreateCommand();
         command.CommandText = @"
             INSERT INTO Vendas (UsuarioId, PizzaId, Quantidade, ValorTotal, DataVenda, CustoTotal)
-            VALUES (@UsuarioId, @PizzaId, @Quantidade, @ValorTotal, @DataVenda)";
+            VALUES (@UsuarioId, @PizzaId, @Quantidade, @ValorTotal, @DataVenda, @CustoTotal)";
 
         command.Parameters.AddWithValue("@UsuarioId", venda.UsuarioId);
         command.Parameters.AddWithValue("@PizzaId", venda.PizzaId);
         command.Parameters.AddWithValue("@Quantidade", venda.Quantidade);
         command.Parameters.AddWithValue("@ValorTotal", venda.ValorTotal);
         command.Parameters.AddWithValue("@DataVenda", dataVenda);
+        command.Parameters.AddWithValue(@)
 
         await command.ExecuteNonQueryAsync();
 
