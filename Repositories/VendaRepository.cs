@@ -180,6 +180,19 @@ public class VendaRepository
             venda.Id = (int)command.LastInsertedId;
             venda.DataVenda = dataVenda;
 
+            using var estoqueCommand = connection.CreateCommand();
+            estoqueCommand.Transaction = transaction;
+
+            estoqueCommand.CommandText = @"
+                UPDATE Pizzas
+                SET Qtd = Qtd - @Quantidade
+                WHERE Id = @PizzaId";
+
+            estoqueCommand.Parameters.AddWithValue("@Quantidade", venda.Quantidade);
+            estoqueCommand.Parameters.AddWithValue("@PizzaId", venda.PizzaId);
+
+            await estoqueCommand.ExecuteNonQueryAsync();
+
             foreach (var acompanhamento in venda.Acompanhamentos)
             {
                 using var itemCommand = connection.CreateCommand();
