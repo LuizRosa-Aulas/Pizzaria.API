@@ -113,4 +113,47 @@ public class PizzaRepository
 
         return await command.ExecuteNonQueryAsync() > 0;
     }
+    public async Task<List<Tipo>> GetAllTipoAsync()
+    {
+        var tipos = new List<Tipo>();
+
+        using var connection = await CreateConnectionAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT Id, Nome FROM Tipo_pizza";
+
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            tipos.Add(new Tipo
+            {
+                Id = reader.GetInt32(0),
+                Nome = reader.GetString(1)
+            });
+
+        }
+        return tipos;
+    }
+    public async Task<List<Borda>> GetAllBordaAsync()
+    {
+        var bordas = new List<Borda>();
+
+        using var connection = await CreateConnectionAsync();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = "SELECT id, Nome, Valor FROM Borda_pizza";
+
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            bordas.Add(new Borda
+            {
+                Id = reader.GetInt32(0),
+                Nome = reader.GetString(1),
+                Valor = reader.GetFloat(2)
+            });
+
+        }
+        return bordas;
+    }
 }
