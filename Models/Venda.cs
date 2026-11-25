@@ -12,4 +12,8 @@ public class Venda
     // Dados preenchidos nas consultas (JOIN)
     public string? NomeUsuario { get; set; }
     public string? NomePizza { get; set; }
+    public int? IdBorda { get; set; }
+    public int? IdTipo { get; set; }
+    public string? NomeBorda { get; set; }
+    public string? NomeTipo { get; set; }
 }
