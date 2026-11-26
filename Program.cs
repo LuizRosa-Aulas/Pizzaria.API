@@ -11,6 +11,7 @@ builder.Services.AddScoped<PizzaRepository>();
 builder.Services.AddScoped<UsuarioRepository>();
 builder.Services.AddScoped<VendaRepository>();
 builder.Services.AddScoped<LucrosRepository>();
+builder.Services.AddScoped<AcompanhamentoRepository>();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
