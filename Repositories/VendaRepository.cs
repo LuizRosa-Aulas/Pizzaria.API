@@ -163,9 +163,11 @@ public class VendaRepository
             using var command = connection.CreateCommand();
             command.Transaction = transaction;
 
+            // CustoTotal é calculado no servidor: custo da pizza x quantidade
             command.CommandText = @"
-                INSERT INTO Vendas (UsuarioId, PizzaId, tipo_da_pizza, borda, Quantidade, ValorTotal, DataVenda)
-                VALUES (@UsuarioId, @PizzaId, @tipo_da_pizza, @borda, @Quantidade, @ValorTotal, @DataVenda)";
+                INSERT INTO Vendas (UsuarioId, PizzaId, tipo_da_pizza, borda, Quantidade, ValorTotal, DataVenda, CustoTotal)
+                VALUES (@UsuarioId, @PizzaId, @tipo_da_pizza, @borda, @Quantidade, @ValorTotal, @DataVenda,
+                        (SELECT COALESCE(p.Custo, 0) * @Quantidade FROM Pizzas p WHERE p.Id = @PizzaId))";
 
             command.Parameters.AddWithValue("@UsuarioId", venda.UsuarioId);
             command.Parameters.AddWithValue("@PizzaId", venda.PizzaId);
@@ -325,6 +327,7 @@ public class VendaRepository
             throw;
         }
     }
+
     public async Task<bool> UpdateStatusAsync(int id, int StatusId)
     {
         using var connection = await CreateConnectionAsync();
