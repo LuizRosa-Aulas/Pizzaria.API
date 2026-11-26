@@ -39,27 +39,30 @@ public class VendaRepository
             LEFT JOIN Tipo_pizza t ON t.Id = v.tipo_da_pizza
             ORDER BY v.DataVenda DESC";
 
-        using var reader = await command.ExecuteReaderAsync();
-
-        while (await reader.ReadAsync())
+        // O reader precisa ser fechado antes de carregar os acompanhamentos:
+        // a mesma conexão não aceita dois readers abertos ao mesmo tempo.
+        using (var reader = await command.ExecuteReaderAsync())
         {
-            vendas.Add(new Venda
+            while (await reader.ReadAsync())
             {
-                Id = reader.GetInt32(0),
-                UsuarioId = reader.GetInt32(1),
-                PizzaId = reader.GetInt32(2),
-                Quantidade = reader.GetInt32(3),
-                ValorTotal = reader.GetDecimal(4),
-                DataVenda = reader.GetDateTime(5),
-                NomeUsuario = reader.GetString(6),
-                NomePizza = reader.GetString(7),
-                IdBorda = reader.IsDBNull(8) ? null : reader.GetInt32(8),
-                IdTipo = reader.IsDBNull(9) ? null : reader.GetInt32(9),
-                NomeBorda = reader.IsDBNull(10) ? "-" : reader.GetString(10),
-                NomeTipo = reader.IsDBNull(11) ? "-" : reader.GetString(11),
-                StatusId = reader.GetValue(12).ToString(),
-                NomeStatus = reader.GetString(13)
-            });
+                vendas.Add(new Venda
+                {
+                    Id = reader.GetInt32(0),
+                    UsuarioId = reader.GetInt32(1),
+                    PizzaId = reader.GetInt32(2),
+                    Quantidade = reader.GetInt32(3),
+                    ValorTotal = reader.GetDecimal(4),
+                    DataVenda = reader.GetDateTime(5),
+                    NomeUsuario = reader.GetString(6),
+                    NomePizza = reader.GetString(7),
+                    IdBorda = reader.IsDBNull(8) ? null : reader.GetInt32(8),
+                    IdTipo = reader.IsDBNull(9) ? null : reader.GetInt32(9),
+                    NomeBorda = reader.IsDBNull(10) ? "-" : reader.GetString(10),
+                    NomeTipo = reader.IsDBNull(11) ? "-" : reader.GetString(11),
+                    StatusId = reader.GetValue(12).ToString(),
+                    NomeStatus = reader.GetString(13)
+                });
+            }
         }
 
 
@@ -146,7 +149,7 @@ public class VendaRepository
                 AcompanhamentoId = reader.GetInt32(2),
                 Quantidade = reader.GetInt32(3),
                 PrecoUnitario = reader.GetDecimal(4),
-                NomeAcompanhamento = reader.GetString(5)
+                NomeAcompanhamento = reader.IsDBNull(5) ? null : reader.GetString(5)
             });
         }
     }
