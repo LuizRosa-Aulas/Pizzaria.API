@@ -64,10 +64,10 @@ CREATE TABLE IF NOT EXISTS Borda_pizza (
 -- Acompanhamentos vendidos junto com a pizza
 CREATE TABLE IF NOT EXISTS Acompanhamentos (
     ID          INT           NOT NULL AUTO_INCREMENT,
-    Nome        VARCHAR(45)   DEFAULT NULL,
-    Descricao   VARCHAR(100)  DEFAULT NULL,
-    Preco       DECIMAL(10,2) DEFAULT NULL,
-    Categoria   VARCHAR(50)   DEFAULT NULL,
+    Nome        VARCHAR(45)   NOT NULL,
+    Descricao   VARCHAR(100)  NOT NULL,
+    Preco       DECIMAL(10,2) NOT NULL,
+    Categoria   VARCHAR(50)   NOT NULL,
     PRIMARY KEY (ID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
