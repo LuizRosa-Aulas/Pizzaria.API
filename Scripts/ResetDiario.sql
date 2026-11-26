@@ -1,23 +1,36 @@
 -- =============================================================================
 -- Reset diario dos dados de demonstracao.
 --
--- Apaga TUDO e repopula com 5 pizzas, 5 usuarios e 10 vendas sorteadas.
+-- Apaga as vendas (com seus acompanhamentos), os usuarios e as pizzas, e
+-- repopula com 5 pizzas, 5 usuarios e 10 vendas sorteadas.
 -- Executado pelo container pizzaria-seed (ver Scripts/AgendadorReset.sh).
+--
+-- Os cadastros de apoio ficam como estao: Status, Tipo_pizza, Borda_pizza e
+-- Acompanhamentos nao sao apagados.
 --
 -- ATENCAO: este script destroi todos os dados. Ele existe porque o ambiente e
 -- de demonstracao/aula. Nao habilite em um banco com dados reais.
 -- =============================================================================
 
--- TRUNCATE zera tambem o AUTO_INCREMENT, entao os Ids voltam a comecar em 1.
-SET FOREIGN_KEY_CHECKS = 0;
-TRUNCATE TABLE Vendas;
-TRUNCATE TABLE Usuarios;
-TRUNCATE TABLE Pizzas;
-SET FOREIGN_KEY_CHECKS = 1;
+-- DELETE e nao TRUNCATE: TRUNCATE exige o privilegio DROP, e a conta da
+-- aplicacao so tem SELECT, INSERT, UPDATE e DELETE. Por isso os Ids continuam
+-- de onde pararam em vez de voltar a 1.
+-- A ordem segue as chaves estrangeiras (filhas antes das maes), com as chaves
+-- ligadas: VendaAcompanhamentos sai junto com Vendas, e nenhum item antigo
+-- sobra apontando para uma venda que nao existe mais.
+DELETE FROM VendaAcompanhamentos;
+DELETE FROM Vendas;
+DELETE FROM Usuarios;
+DELETE FROM Pizzas;
 
--- 5 pizzas sorteadas de um catalogo de 15, com preco entre 30.00 e 60.00
-INSERT INTO Pizzas (Nome, Descricao, Preco)
-SELECT Nome, Descricao, ROUND(30 + RAND() * 30, 2)
+-- 5 pizzas sorteadas de um catalogo de 15, com preco entre 30.00 e 60.00,
+-- custo entre 25% e 40% do preco e 20 unidades em estoque.
+-- O sorteio fica numa subconsulta com LIMIT, que o MySQL materializa: assim o
+-- custo e calculado sobre o mesmo preco que vai para a tabela.
+INSERT INTO Pizzas (Nome, Descricao, Preco, Custo, Obs, Qtd)
+SELECT Nome, Descricao, Preco, ROUND(Preco * (0.25 + RAND() * 0.15), 2), '', 20
+FROM (
+SELECT Nome, Descricao, ROUND(30 + RAND() * 30, 2) AS Preco
 FROM (
               SELECT 'Margherita'         AS Nome, 'Molho de tomate, mussarela e manjericão'        AS Descricao
     UNION ALL SELECT 'Calabresa',               'Calabresa fatiada, cebola e mussarela'
@@ -36,7 +49,8 @@ FROM (
     UNION ALL SELECT 'Toscana',                 'Linguiça toscana, cebola caramelizada e mussarela'
 ) AS catalogo
 ORDER BY RAND()
-LIMIT 5;
+LIMIT 5
+) AS sorteadas;
 
 -- 5 usuarios sorteados de uma lista de 15, com telefone aleatorio
 INSERT INTO Usuarios (Nome, Email, Telefone)
@@ -63,15 +77,19 @@ LIMIT 5;
 
 -- 10 vendas sorteadas. O CROSS JOIN com o multiplicador permite que o mesmo par
 -- (usuario, pizza) saia mais de uma vez -- um cliente pode repetir o pedido.
--- ValorTotal e calculado (Preco x Quantidade), nao sorteado, para os totais
--- da aplicacao fecharem com o cardapio.
-INSERT INTO Vendas (UsuarioId, PizzaId, Quantidade, ValorTotal, DataVenda)
-SELECT UsuarioId, PizzaId, Quantidade, ROUND(Preco * Quantidade, 2), DataVenda
+-- ValorTotal e CustoTotal sao calculados (Preco/Custo x Quantidade), nao
+-- sorteados, para os totais e o lucro da aplicacao fecharem com o cardapio.
+-- Todas saem como pizza do tipo de fator 1 (Normal), sem borda e com o status
+-- padrao da coluna (1, Preparando).
+INSERT INTO Vendas (UsuarioId, PizzaId, Quantidade, ValorTotal, CustoTotal, DataVenda, tipo_da_pizza)
+SELECT UsuarioId, PizzaId, Quantidade, ROUND(Preco * Quantidade, 2), ROUND(Custo * Quantidade, 2), DataVenda,
+       (SELECT Id FROM Tipo_pizza WHERE Calculo_valor = 1 ORDER BY Id LIMIT 1)
 FROM (
     SELECT
         u.Id                                            AS UsuarioId,
         p.Id                                            AS PizzaId,
         p.Preco                                         AS Preco,
+        p.Custo                                         AS Custo,
         1 + FLOOR(RAND() * 4)                           AS Quantidade,
         NOW() - INTERVAL FLOOR(RAND() * 43200) MINUTE   AS DataVenda
     FROM Usuarios u

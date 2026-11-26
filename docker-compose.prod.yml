@@ -49,9 +49,6 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Server=pizzaria-mysql;Port=3306;Database=${MYSQL_DATABASE:-pizzaria};User Id=${MYSQL_USER:-pizzaria};Password=${MYSQL_PASSWORD};Default Command Timeout=30;
       - TZ=${TZ:-America/Sao_Paulo}
-    volumes:
-      # Permite ajustar o schema sem rebuildar a imagem
-      - ./Scripts/CriarBanco.sql:/app/init.sql:ro
     networks:
       - web
       - pizzaria-internal

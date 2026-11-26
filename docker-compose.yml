@@ -31,6 +31,9 @@ services:
       - "127.0.0.1:${MYSQL_PORT:-3307}:3306"
     volumes:
       - mysql_dev_data:/var/lib/mysql
+      # O MySQL executa este script sozinho na primeira subida do volume
+      # (volume vazio). Mudou o schema? docker compose down -v e suba de novo.
+      - ./Scripts/CriarBanco.sql:/docker-entrypoint-initdb.d/01-CriarBanco.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-proot_dev"]
       interval: 10s
@@ -52,9 +55,6 @@ services:
     ports:
       # Se a 8080 estiver ocupada:  API_PORT=8081 docker compose up -d
       - "${API_PORT:-8080}:8080"
-    volumes:
-      # Permite mexer no schema e so reiniciar o container, sem rebuildar a imagem
-      - ./Scripts/CriarBanco.sql:/app/init.sql:ro
 
 # Sem "restart: unless-stopped" de proposito: numa maquina de aula os containers
 # nao devem voltar sozinhos a cada boot. No servidor eles voltam (arquivo prod).

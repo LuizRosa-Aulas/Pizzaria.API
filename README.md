@@ -105,18 +105,27 @@ Pizzaria.API/
 
 ## 🗄️ Banco de Dados
 
-O schema tem **3 tabelas**, criadas automaticamente na primeira execução da API
-a partir de `Scripts/CriarBanco.sql`:
+O schema fica em `Scripts/CriarBanco.sql`, que espelha o banco de produção:
 
 | Tabela | Descrição |
 |---|---|
-| `Pizzas` | Cardápio — `Id`, `Nome`, `Descricao`, `Preco` |
+| `Pizzas` | Cardápio — `Id`, `Nome`, `Descricao`, `Preco`, `Custo`, `Obs`, `Qtd` (estoque) |
 | `Usuarios` | Clientes — `Id`, `Nome`, `Email`, `Telefone` |
-| `Vendas` | Pedidos — `Id`, `UsuarioId` (FK), `PizzaId` (FK), `Quantidade`, `ValorTotal`, `DataVenda` |
+| `Vendas` | Pedidos — `UsuarioId` (FK), `PizzaId` (FK), `Quantidade`, `ValorTotal`, `CustoTotal`, `DataVenda`, `tipo_da_pizza`, `borda`, `StatusId` |
+| `VendaAcompanhamentos` | Itens de acompanhamento de cada venda (FK para `Vendas` e `Acompanhamentos`) |
+| `Acompanhamentos` | Porções, refrigerantes e sobremesas |
+| `Status` | Preparando, A caminho, Entregue |
+| `Tipo_pizza` | Broto e Normal, com o fator de preço (`Calculo_valor`) |
+| `Borda_pizza` | Bordas recheadas e seus preços |
+| `Admins` | Administradores (ainda sem uso na API) |
 
-`Vendas` é a tabela associativa: N:1 com `Usuarios` e N:1 com `Pizzas`, com
-foreign keys InnoDB. O script é idempotente (`CREATE TABLE IF NOT EXISTS` +
-`INSERT IGNORE`), então pode rodar em toda subida sem duplicar dados.
+A API **não** executa o script: a conta dela no banco só lê e grava dados
+(SELECT, INSERT, UPDATE, DELETE). Na sua máquina quem roda o script é o próprio
+container do MySQL, na primeira subida de um volume vazio. O script é
+idempotente (`CREATE TABLE IF NOT EXISTS` + dados só em tabela vazia).
+
+> Mudou o `CriarBanco.sql`? O volume antigo não é recriado sozinho:
+> `docker compose down -v` e `docker compose up -d --build`.
 
 ---
 
@@ -142,8 +151,8 @@ docker compose up -d --build
 
 É só isso: **não há `.env` para preencher nem senha para inventar**. Sobem dois
 containers — `pizzaria-mysql-dev` e `pizzaria-api-dev` — e a API espera o
-healthcheck do banco passar antes de iniciar, criando o schema sozinha a partir
-de `Scripts/CriarBanco.sql`.
+healthcheck do banco passar antes de iniciar. O schema é criado pelo container
+do MySQL a partir de `Scripts/CriarBanco.sql`.
 
 | Endereço | O que é |
 |---|---|
