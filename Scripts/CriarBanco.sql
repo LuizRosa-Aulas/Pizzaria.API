@@ -1,7 +1,9 @@
 -- =============================================
 -- Pizzaria - Schema MySQL 8.4
 --
--- Espelha o banco de producao (conferido em 25/11/2026).
+-- Espelha o banco de producao (conferido em 25/11/2026). Todas as tabelas usam
+-- utf8mb4_unicode_ci: misturar collations faz comparacao de texto entre
+-- tabelas falhar com "Illegal mix of collations".
 --
 -- A API NAO executa este arquivo: a conta dela no banco so le e grava dados.
 --   * Na sua maquina, o container do MySQL roda o script sozinho na primeira
@@ -72,12 +74,10 @@ CREATE TABLE IF NOT EXISTS Acompanhamentos (
 -- Tabela de Vendas
 -- borda e tipo_da_pizza apontam para Borda_pizza e Tipo_pizza, e StatusId para
 -- Status, mas sem chave estrangeira (igual a producao).
--- PizzaId2 e AcompanhamentoId existem em producao e nao sao usados pelo codigo.
 CREATE TABLE IF NOT EXISTS Vendas (
     Id               INT           NOT NULL AUTO_INCREMENT,
     UsuarioId        INT           NOT NULL,
     PizzaId          INT           NOT NULL,
-    PizzaId2         INT           DEFAULT NULL,
     Quantidade       INT           NOT NULL,
     CustoTotal       DECIMAL(10,2) DEFAULT NULL,
     ValorTotal       DECIMAL(10,2) NOT NULL,
@@ -85,7 +85,6 @@ CREATE TABLE IF NOT EXISTS Vendas (
     borda            INT           DEFAULT NULL,
     tipo_da_pizza    INT           DEFAULT NULL,
     StatusId         INT           NOT NULL DEFAULT 1,
-    AcompanhamentoId INT           DEFAULT NULL,
     PRIMARY KEY (Id),
     KEY IX_Vendas_UsuarioId (UsuarioId),
     KEY IX_Vendas_PizzaId (PizzaId),
